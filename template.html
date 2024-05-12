@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <table style="line-height: 10px; font-size: 7px; border: 1px solid #999">
+      <tbody>
+        <tr>
+          <td id="matrix"></td>
+        </tr>
+      </tbody>
+    </table>
+    <script>
+      let _ = "resources/empty.png";
+      let O = "resources/o.png";
+      let I = "resources/i.png";
+      let T = "resources/t.png";
+      let S = "resources/s.png";
+      let Z = "resources/z.png";
+      let J = "resources/j.png";
+      let L = "resources/l.png";
+
+      function generateLine(line) {
+        var div = document.createElement("div");
+        line.forEach((cell) => {
+          var img = document.createElement("img");
+          img.src = cell;
+          div.appendChild(img);
+        });
+        return div;
+      }
+
+      function addMatrixContent(matrix, lines) {
+        lines.forEach((line) => {
+          var div = generateLine(line);
+          matrix.appendChild(div);
+        });
+      }
+
+      addMatrixContent(document.getElementById("matrix"), [
+        [_, _, _, _, _, _, _, _, _, _],
+        [_, _, _, _, O, O, _, _, _, _],
+        [_, _, _, _, O, O, _, _, _, _],
+        [_, _, _, _, _, _, _, _, _, _],
+      ]);
+    </script>
+  </body>
+</html>

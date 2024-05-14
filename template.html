@@ -1,11 +1,19 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <table>
-      <tbody>
-        <tr id="matrixContainer"></tr>
-      </tbody>
-    </table>
+  <head>
+    <style>
+      .matrix {
+        width: fit-content;
+        margin: auto;
+        border: 2px solid #cccccc;
+      }
+
+      .row {
+        display: flex;
+      }
+    </style>
+  </head>
+  <body id="body">
     <script>
       let svgNS = "http://www.w3.org/2000/svg";
 
@@ -39,7 +47,7 @@
         cellSideLenghtWithoutHalfShadow,
       ].join(" ");
 
-      function cellObject(background, light, dark) {
+      function cellProperties(background, light, dark) {
         return {
           background: background,
           light: light,
@@ -47,82 +55,101 @@
         };
       }
 
-      let _ = cellObject("#ffffff", "#ffffff", "#eeeeee");
-      let O = cellObject("#f7d308", "#ffec1c", "#e8c000");
-      let I = cellObject("#31c7ef", "#48e0ff", "#20b0e0");
-      let T = cellObject("#ad4d9c", "#c658b4", "#983888");
-      let S = cellObject("#42b642", "#48d048", "#30a030");
-      let Z = cellObject("#ef2029", "#ff4848", "#d01818");
-      let J = cellObject("#5a65ad", "#6680cc", "#4857a0");
-      let L = cellObject("#ef7921", "#ff9030", "#e06810");
+      let _ = cellProperties("#ffffff", "#ffffff", "#eeeeee");
+      let X = cellProperties("#c8c8c8", "#dcdcdc", "#b4b4b4");
+      let O = cellProperties("#f7d308", "#ffec1c", "#e8c000");
+      let I = cellProperties("#31c7ef", "#48e0ff", "#20b0e0");
+      let T = cellProperties("#ad4d9c", "#c658b4", "#983888");
+      let S = cellProperties("#42b642", "#48d048", "#30a030");
+      let Z = cellProperties("#ef2029", "#ff4848", "#d01818");
+      let J = cellProperties("#5a65ad", "#6680cc", "#4857a0");
+      let L = cellProperties("#ef7921", "#ff9030", "#e06810");
 
-      function createSVGElement(qualifiedName) {
+      function svgElement(qualifiedName) {
         return document.createElementNS(svgNS, qualifiedName);
       }
 
-      function createCellContainer() {
-        let svg = createSVGElement("svg");
-        svg.setAttribute("width", cellSideLength);
-        svg.setAttribute("height", cellSideLength);
-        return svg;
+      function cellContainer() {
+        let cellContainer = svgElement("svg");
+        cellContainer.setAttribute("width", cellSideLength);
+        cellContainer.setAttribute("height", cellSideLength);
+        return cellContainer;
       }
 
-      function createCellBackground(cell) {
-        let rect = createSVGElement("rect");
-        rect.setAttribute("width", cellSideLength);
-        rect.setAttribute("height", cellSideLength);
-        rect.setAttribute("fill", cell.background);
-        return rect;
+      function cellBackground(cellProperties) {
+        let cellBackground = svgElement("rect");
+        cellBackground.setAttribute("width", cellSideLength);
+        cellBackground.setAttribute("height", cellSideLength);
+        cellBackground.setAttribute("fill", cellProperties.background);
+        return cellBackground;
       }
 
-      function createCellLightShadow(cell) {
-        let path = createSVGElement("path");
-        path.setAttribute("d", cellLightShadowPathDAttribute);
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke-width", cellShadowWidth);
-        path.setAttribute("stroke", cell.light);
-        return path;
+      function cellLightShadow(cellProperties) {
+        let cellLightShadow = svgElement("path");
+        cellLightShadow.setAttribute("d", cellLightShadowPathDAttribute);
+        cellLightShadow.setAttribute("fill", "none");
+        cellLightShadow.setAttribute("stroke-width", cellShadowWidth);
+        cellLightShadow.setAttribute("stroke", cellProperties.light);
+        return cellLightShadow;
       }
 
-      function createCellDarkShadow(cell) {
-        let path = createSVGElement("path");
-        path.setAttribute("d", cellDarkShadowPathDAttribute);
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke-width", cellShadowWidth);
-        path.setAttribute("stroke", cell.dark);
-        return path;
+      function cellDarkShadow(cellProperties) {
+        let cellDarkShadow = svgElement("path");
+        cellDarkShadow.setAttribute("d", cellDarkShadowPathDAttribute);
+        cellDarkShadow.setAttribute("fill", "none");
+        cellDarkShadow.setAttribute("stroke-width", cellShadowWidth);
+        cellDarkShadow.setAttribute("stroke", cellProperties.dark);
+        return cellDarkShadow;
       }
 
-      function createCell(cell) {
-        let svg = createCellContainer();
-        svg.appendChild(createCellBackground(cell));
-        svg.appendChild(createCellLightShadow(cell));
-        svg.appendChild(createCellDarkShadow(cell));
-        return svg;
+      function cell(cellProperties) {
+        let cell = cellContainer();
+        cell.appendChild(cellBackground(cellProperties));
+        cell.appendChild(cellLightShadow(cellProperties));
+        cell.appendChild(cellDarkShadow(cellProperties));
+        return cell;
       }
 
-      function createRow(row) {
-        let div = document.createElement("div");
-        row.forEach((cell) => {
-          div.appendChild(createCell(cell));
+      function row(rowProperties) {
+        let row = document.createElement("div");
+        row.setAttribute("class", "row");
+        rowProperties.forEach((cellProperties) => {
+          row.appendChild(cell(cellProperties));
         });
-        return div;
+        return row;
       }
 
-      function createMatrix(matrix) {
-        let td = document.createElement("td");
-        matrix.forEach((row) => {
-          td.appendChild(createRow(row));
+      function matrix(matrixProperties) {
+        let matrix = document.createElement("div");
+        matrix.setAttribute("class", "matrix");
+        matrixProperties.forEach((rowProperties) => {
+          matrix.appendChild(row(rowProperties));
         });
-        return td;
+        return matrix;
       }
 
-      document.getElementById("matrixContainer").appendChild(
-        createMatrix([
+      document.getElementById("body").appendChild(
+        matrix([
           [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, O, O, _, _, _, _],
-          [_, _, _, _, O, O, _, _, _, _],
           [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [_, _, _, _, _, _, _, _, _, _],
+          [L, L, L, T, Z, Z, L, L, I, _],
+          [L, O, O, T, T, Z, Z, L, I, _],
+          [J, O, O, T, S, S, T, L, I, _],
+          [J, J, J, S, S, T, T, T, I, _],
         ])
       );
     </script>

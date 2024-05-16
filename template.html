@@ -2,27 +2,57 @@
 <html>
   <head>
     <style>
+      body {
+        display: flex;
+      }
+
       .matrix {
         width: fit-content;
         margin: auto;
-        border: 2px solid #cccccc;
+        border: 4px solid #cccccc;
       }
 
       .row {
         display: flex;
       }
+
+      .tetrominos {
+        margin: auto;
+      }
+
+      .tetromino-row {
+        display: flex;
+        justify-content: space-evenly;
+      }
+
+      .tetromino {
+        margin: 24px;
+      }
+
+      .tetromino-selected {
+        opacity: 100%;
+      }
+
+      .tetromino-deselected {
+        opacity: 50%;
+      }
     </style>
   </head>
-  <body id="body">
+  <body>
+    <div id="matrix" class="matrix"></div>
+    <div id="tetrominos" class="tetrominos"></div>
     <script>
+      // --------
+      // SETTINGS
+      // --------
       let svgNS = "http://www.w3.org/2000/svg";
 
-      let cellSideLength = "24";
-      let cellShadowWidth = "2";
+      let cellSideLength = "48";
+      let cellShadowWidth = "4";
 
       let cellShadowWidthHalf = cellShadowWidth / 2;
       let cellSideLenghtWithoutShadow = cellSideLength - cellShadowWidth;
-      let cellSideLenghtWithoutHalfShadow =
+      let cellSideLenghtWithoutHalfOfShadow =
         cellSideLength - cellShadowWidthHalf;
       let cellLightShadowPathDAttribute = [
         "M",
@@ -37,16 +67,19 @@
       ].join(" ");
       let cellDarkShadowPathDAttribute = [
         "M",
-        cellSideLenghtWithoutHalfShadow,
+        cellSideLenghtWithoutHalfOfShadow,
         cellShadowWidth,
         "L",
-        cellSideLenghtWithoutHalfShadow,
-        cellSideLenghtWithoutHalfShadow,
+        cellSideLenghtWithoutHalfOfShadow,
+        cellSideLenghtWithoutHalfOfShadow,
         "L",
         cellShadowWidth,
-        cellSideLenghtWithoutHalfShadow,
+        cellSideLenghtWithoutHalfOfShadow,
       ].join(" ");
 
+      // -----
+      // CELLS
+      // -----
       function cellProperties(background, light, dark) {
         return {
           background: background,
@@ -57,48 +90,131 @@
 
       let _ = cellProperties("#ffffff", "#ffffff", "#eeeeee");
       let X = cellProperties("#c8c8c8", "#dcdcdc", "#b4b4b4");
-      let O = cellProperties("#f7d308", "#ffec1c", "#e8c000");
       let I = cellProperties("#31c7ef", "#48e0ff", "#20b0e0");
+      let O = cellProperties("#f7d308", "#ffec1c", "#e8c000");
       let T = cellProperties("#ad4d9c", "#c658b4", "#983888");
       let S = cellProperties("#42b642", "#48d048", "#30a030");
       let Z = cellProperties("#ef2029", "#ff4848", "#d01818");
       let J = cellProperties("#5a65ad", "#6680cc", "#4857a0");
       let L = cellProperties("#ef7921", "#ff9030", "#e06810");
 
+      // -------------
+      // ELEMENT UTILS
+      // -------------
+      function htmlElement(qualifiedName) {
+        return document.createElement(qualifiedName);
+      }
+
+      function div() {
+        return htmlElement("div");
+      }
+
       function svgElement(qualifiedName) {
         return document.createElementNS(svgNS, qualifiedName);
       }
 
+      function svg() {
+        return svgElement("svg");
+      }
+      function rect() {
+        return svgElement("rect");
+      }
+      function path() {
+        return svgElement("path");
+      }
+
+      function setAttribute(element, qualifiedName, value) {
+        element.setAttribute(qualifiedName, value);
+      }
+
+      function setClass(element, cssClass) {
+        setAttribute(element, "class", cssClass);
+      }
+      function addClass(element, cssClass) {
+        element.classList.add(cssClass);
+      }
+      function removeClass(element, cssClass) {
+        element.classList.remove(cssClass);
+      }
+      function setWidth(element, width) {
+        setAttribute(element, "width", width);
+      }
+      function setHeight(element, height) {
+        setAttribute(element, "height", height);
+      }
+      function setWidthAndHeight(element, value) {
+        setWidth(element, value);
+        setHeight(element, value);
+      }
+      function setFill(element, fill) {
+        setAttribute(element, "fill", fill);
+      }
+      function setD(element, d) {
+        setAttribute(element, "d", d);
+      }
+      function setStrokeWidth(element, strokeWidth) {
+        setAttribute(element, "stroke-width", strokeWidth);
+      }
+      function setStroke(element, stroke) {
+        setAttribute(element, "stroke", stroke);
+      }
+
+      // --------------------
+      // EVENT HANDLERS UTILS
+      // --------------------
+      function deselectTetrominos() {
+        let tetrominos = document.getElementsByClassName("tetromino");
+        for (var i = 0; i < tetrominos.length; i++) {
+          let tetromino = tetrominos[i];
+          removeClass(tetromino, "tetromino-selected");
+          addClass(tetromino, "tetromino-deselected");
+        }
+      }
+
+      function selectTetromino(tetromino) {
+        removeClass(tetromino, "tetromino-deselected");
+        addClass(tetromino, "tetromino-selected");
+      }
+
+      // --------------
+      // EVENT HANDLERS
+      // --------------
+      function handleTetrominoClick(event) {
+        deselectTetrominos();
+        selectTetromino(event.currentTarget);
+      }
+
+      // -----------
+      // RENDER CELL
+      // -----------
       function cellContainer() {
-        let cellContainer = svgElement("svg");
-        cellContainer.setAttribute("width", cellSideLength);
-        cellContainer.setAttribute("height", cellSideLength);
+        let cellContainer = svg();
+        setWidthAndHeight(cellContainer, cellSideLength);
         return cellContainer;
       }
 
       function cellBackground(cellProperties) {
-        let cellBackground = svgElement("rect");
-        cellBackground.setAttribute("width", cellSideLength);
-        cellBackground.setAttribute("height", cellSideLength);
-        cellBackground.setAttribute("fill", cellProperties.background);
+        let cellBackground = rect();
+        setWidthAndHeight(cellBackground, cellSideLength);
+        setFill(cellBackground, cellProperties.background);
         return cellBackground;
       }
 
       function cellLightShadow(cellProperties) {
-        let cellLightShadow = svgElement("path");
-        cellLightShadow.setAttribute("d", cellLightShadowPathDAttribute);
-        cellLightShadow.setAttribute("fill", "none");
-        cellLightShadow.setAttribute("stroke-width", cellShadowWidth);
-        cellLightShadow.setAttribute("stroke", cellProperties.light);
+        let cellLightShadow = path();
+        setFill(cellLightShadow, "none");
+        setD(cellLightShadow, cellLightShadowPathDAttribute);
+        setStrokeWidth(cellLightShadow, cellShadowWidth);
+        setStroke(cellLightShadow, cellProperties.light);
         return cellLightShadow;
       }
 
       function cellDarkShadow(cellProperties) {
-        let cellDarkShadow = svgElement("path");
-        cellDarkShadow.setAttribute("d", cellDarkShadowPathDAttribute);
-        cellDarkShadow.setAttribute("fill", "none");
-        cellDarkShadow.setAttribute("stroke-width", cellShadowWidth);
-        cellDarkShadow.setAttribute("stroke", cellProperties.dark);
+        let cellDarkShadow = path();
+        setFill(cellDarkShadow, "none");
+        setD(cellDarkShadow, cellDarkShadowPathDAttribute);
+        setStrokeWidth(cellDarkShadow, cellShadowWidth);
+        setStroke(cellDarkShadow, cellProperties.dark);
         return cellDarkShadow;
       }
 
@@ -110,9 +226,12 @@
         return cell;
       }
 
+      // -------------
+      // RENDER MATRIX
+      // -------------
       function row(rowProperties) {
-        let row = document.createElement("div");
-        row.setAttribute("class", "row");
+        let row = div();
+        setClass(row, "row");
         rowProperties.forEach((cellProperties) => {
           row.appendChild(cell(cellProperties));
         });
@@ -120,15 +239,44 @@
       }
 
       function matrix(matrixProperties) {
-        let matrix = document.createElement("div");
-        matrix.setAttribute("class", "matrix");
+        let matrix = div();
         matrixProperties.forEach((rowProperties) => {
           matrix.appendChild(row(rowProperties));
         });
         return matrix;
       }
 
-      document.getElementById("body").appendChild(
+      // -----------------
+      // RENDER TETROMINOS
+      // -----------------
+      function tetromino(tetrominoProperty) {
+        let tetromino = matrix(tetrominoProperty);
+        setClass(tetromino, "tetromino tetromino-deselected");
+        tetromino.addEventListener("click", handleTetrominoClick);
+        return tetromino;
+      }
+
+      function tetrominoRow(tetrominoRowProperties) {
+        let tetrominoRow = div();
+        setClass(tetrominoRow, "tetromino-row");
+        tetrominoRowProperties.forEach((tetrominoProperty) => {
+          tetrominoRow.appendChild(tetromino(tetrominoProperty));
+        });
+        return tetrominoRow;
+      }
+
+      function tetrominoRows(tetrominoRowsProperties) {
+        let tetrominoRows = div();
+        tetrominoRowsProperties.forEach((tetrominoRowProperties) => {
+          tetrominoRows.appendChild(tetrominoRow(tetrominoRowProperties));
+        });
+        return tetrominoRows;
+      }
+
+      // ----------
+      // RENDER DOM
+      // ----------
+      document.getElementById("matrix").appendChild(
         matrix([
           [_, _, _, _, _, _, _, _, _, _],
           [_, _, _, _, _, _, _, _, _, _],
@@ -150,6 +298,57 @@
           [L, O, O, T, T, Z, Z, L, I, _],
           [J, O, O, T, S, S, T, L, I, _],
           [J, J, J, S, S, T, T, T, I, _],
+        ])
+      );
+
+      document.getElementById("tetrominos").appendChild(
+        tetrominoRows([
+          [
+            [
+              [I, I, I, I],
+              [_, _, _, _],
+            ],
+          ],
+          [
+            [
+              [_, O, O, _],
+              [_, O, O, _],
+            ],
+            [
+              [_, T, T, T],
+              [_, _, T, _],
+            ],
+          ],
+          [
+            [
+              [_, _, S, S],
+              [_, S, S, _],
+            ],
+            [
+              [Z, Z, _, _],
+              [_, Z, Z, _],
+            ],
+          ],
+          [
+            [
+              [J, J, J, _],
+              [_, _, J, _],
+            ],
+            [
+              [_, L, L, L],
+              [_, L, _, _],
+            ],
+          ],
+          [
+            [
+              [_, _, _, _],
+              [_, _, _, _],
+            ],
+            [
+              [X, X, X, X],
+              [X, X, X, X],
+            ],
+          ],
         ])
       );
     </script>

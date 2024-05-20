@@ -4,14 +4,62 @@
     <style>
       body {
         display: flex;
+        margin: 12px;
       }
 
       .matrix-container {
-        margin: auto;
+        flex: auto;
+        display: flex;
+        justify-content: center;
       }
 
       .matrix {
         border: 4px solid #cccccc;
+      }
+
+      .buttons-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .button {
+        display: flex;
+        justify-content: center;
+        margin: 0 24px;
+        width: 48px;
+        height: 48px;
+        border: 2px solid;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        fill: #ffffff;
+      }
+
+      .button:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      .button:active {
+        transform: translateY(0);
+        fill: #dddddd;
+      }
+
+      .button-clear {
+        background-color: #ff2d2d;
+      }
+
+      .button-clear:active {
+        background-color: #dd0b0b;
+      }
+
+      .button-save {
+        background-color: #2edd71;
+      }
+
+      .button-save:active {
+        background-color: #0cbb4f;
       }
 
       .row {
@@ -19,12 +67,20 @@
       }
 
       .tetrominos-container {
-        margin: auto;
+        flex: auto;
+        display: flex;
+        justify-content: center;
       }
 
-      .tetrominos-row {
+      .tetrominos {
         display: flex;
-        justify-content: space-evenly;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .tetromino-row {
+        display: flex;
+        justify-content: center;
       }
 
       .tetromino {
@@ -37,8 +93,39 @@
     </style>
   </head>
   <body>
-    <div id="matrixContainer" class="matrix-container"></div>
     <div id="tetrominosContainer" class="tetrominos-container"></div>
+    <div id="matrixContainer" class="matrix-container"></div>
+    <div class="buttons-container">
+      <button class="button button-clear">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <path
+            d="M424 64h-88V48c0-26.51-21.49-48-48-48h-64c-26.51 0-48 21.49-48
+              48v16H88c-22.091 0-40 17.909-40 40v32c0 8.837 7.163 16 16
+              16h384c8.837 0 16-7.163 16-16v-32c0-22.091-17.909-40-40-40zM208
+              48c0-8.82 7.18-16 16-16h64c8.82 0 16 7.18 16 16v16h-96zM78.364
+              184a5 5 0 0 0-4.994 5.238l13.2 277.042c1.22 25.64 22.28 45.72
+              47.94 45.72h242.98c25.66 0 46.72-20.08 47.94-45.72l13.2-277.042a5
+              5 0 0 0-4.994-5.238zM320 224c0-8.84 7.16-16 16-16s16 7.16 16
+              16v208c0 8.84-7.16 16-16 16s-16-7.16-16-16zm-80 0c0-8.84 7.16-16
+              16-16s16 7.16 16 16v208c0 8.84-7.16 16-16 16s-16-7.16-16-16zm-80
+              0c0-8.84 7.16-16 16-16s16 7.16 16 16v208c0 8.84-7.16 16-16
+              16s-16-7.16-16-16z"
+          />
+        </svg>
+      </button>
+      <button class="button button-save">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+          <path
+            d="m30.71 7.29-6-6A1 1 0 0 0 24 1h-2v8a2 2 0 0 1-2 2h-8a2 2 0 0
+            1-2-2V1H4a3 3 0 0 0-3 3v24a3 3 0 0 0 3 3h2v-9a3 3 0 0 1 3-3h14a3 3
+            0 0 1 3 3v9h2a3 3 0 0 0 3-3V8a1 1 0 0 0-.29-.71z"
+          />
+          <path
+            d="M12 1h8v8h-8zM23 21H9a1 1 0 0 0-1 1v9h16v-9a1 1 0 0 0-1-1z"
+          />
+        </svg>
+      </button>
+    </div>
     <script>
       // --------
       // SETTINGS
@@ -422,25 +509,26 @@
         return tetromino;
       }
 
-      function tetrominoRow(tetrominoRowProperties) {
+      function tetrominosRow(tetrominoRowProperties) {
         let tetrominoRow = div();
-        setClass(tetrominoRow, "tetrominos-row");
+        setClass(tetrominoRow, "tetromino-row");
         tetrominoRowProperties.forEach((tetrominoProperty) => {
           tetrominoRow.appendChild(tetromino(tetrominoProperty));
         });
         return tetrominoRow;
       }
 
-      function tetrominoRows(tetrominoRowsProperties) {
-        let tetrominoRows = div();
-        tetrominoRowsProperties.forEach((tetrominoRowProperties) => {
-          tetrominoRows.appendChild(tetrominoRow(tetrominoRowProperties));
+      function tetrominos(tetrominosProperties) {
+        let tetrominos = div();
+        setClass(tetrominos, "tetrominos");
+        tetrominosProperties.forEach((tetrominoRowProperties) => {
+          tetrominos.appendChild(tetrominosRow(tetrominoRowProperties));
         });
-        return tetrominoRows;
+        return tetrominos;
       }
 
-      function tetrominos() {
-        return tetrominoRows([
+      function tetrominosElement() {
+        return tetrominos([
           [ITetromino],
           [OTetromino, TTetromino],
           [STetromino, ZTetromino],
@@ -456,7 +544,9 @@
       document.addEventListener("mouseup", handleDocumentMouseUp);
 
       document.getElementById("matrixContainer").appendChild(matrixElement());
-      document.getElementById("tetrominosContainer").appendChild(tetrominos());
+      document
+        .getElementById("tetrominosContainer")
+        .appendChild(tetrominosElement());
 
       selectTetromino(getFirstElementByClassName("tetromino"));
     </script>

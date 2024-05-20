@@ -29,10 +29,6 @@
         margin: 24px;
       }
 
-      .tetromino-selected {
-        opacity: 100%;
-      }
-
       .tetromino-deselected {
         opacity: 50%;
       }
@@ -98,6 +94,80 @@
       let J = cellProperties("#5a65ad", "#6680cc", "#4857a0");
       let L = cellProperties("#ef7921", "#ff9030", "#e06810");
 
+      // ----------
+      // TETROMINOS
+      // ----------
+      function tetrominoProperties(matrix, selectionCellProperties) {
+        return {
+          matrix: matrix,
+          selectionCellProperties: selectionCellProperties,
+        };
+      }
+
+      let _Tetromino = tetrominoProperties(
+        [
+          [_, _, _, _],
+          [_, _, _, _],
+        ],
+        _
+      );
+      let XTetromino = tetrominoProperties(
+        [
+          [X, X, X, X],
+          [X, X, X, X],
+        ],
+        X
+      );
+      let ITetromino = tetrominoProperties(
+        [
+          [I, I, I, I],
+          [_, _, _, _],
+        ],
+        I
+      );
+      let OTetromino = tetrominoProperties(
+        [
+          [_, O, O, _],
+          [_, O, O, _],
+        ],
+        O
+      );
+      let TTetromino = tetrominoProperties(
+        [
+          [_, T, T, T],
+          [_, _, T, _],
+        ],
+        T
+      );
+      let STetromino = tetrominoProperties(
+        [
+          [_, _, S, S],
+          [_, S, S, _],
+        ],
+        S
+      );
+      let ZTetromino = tetrominoProperties(
+        [
+          [Z, Z, _, _],
+          [_, Z, Z, _],
+        ],
+        Z
+      );
+      let JTetromino = tetrominoProperties(
+        [
+          [J, J, J, _],
+          [_, _, J, _],
+        ],
+        J
+      );
+      let LTetromino = tetrominoProperties(
+        [
+          [_, L, L, L],
+          [_, L, _, _],
+        ],
+        L
+      );
+
       // -------------
       // ELEMENT UTILS
       // -------------
@@ -136,6 +206,7 @@
       function removeClass(element, cssClass) {
         element.classList.remove(cssClass);
       }
+
       function setWidth(element, width) {
         setAttribute(element, "width", width);
       }
@@ -146,6 +217,7 @@
         setWidth(element, value);
         setHeight(element, value);
       }
+
       function setFill(element, fill) {
         setAttribute(element, "fill", fill);
       }
@@ -157,6 +229,20 @@
       }
       function setStroke(element, stroke) {
         setAttribute(element, "stroke", stroke);
+      }
+
+      function setData(element, qualifiedName, data) {
+        setAttribute(element, `data-${qualifiedName}`, JSON.stringify(data));
+      }
+      function getData(element, qualifiedName) {
+        return JSON.parse(element.getAttribute(`data-${qualifiedName}`));
+      }
+
+      function getFirstElementByClassNameOfElement(element, className) {
+        return element.getElementsByClassName(className).item(0);
+      }
+      function getFirstElementByClassName(className) {
+        return getFirstElementByClassNameOfElement(document, className);
       }
 
       // --------------------
@@ -176,12 +262,38 @@
         addClass(tetromino, "tetromino-selected");
       }
 
+      function selectionCellProperties() {
+        return getData(
+          getFirstElementByClassName("tetromino-selected"),
+          "selectionCellProperties"
+        );
+      }
+
+      function updateCell(cell, cellProperties) {
+        setFill(
+          getFirstElementByClassNameOfElement(cell, "cell-background"),
+          cellProperties.background
+        );
+        setStroke(
+          getFirstElementByClassNameOfElement(cell, "cell-light-shadow"),
+          cellProperties.light
+        );
+        setStroke(
+          getFirstElementByClassNameOfElement(cell, "cell-dark-shadow"),
+          cellProperties.dark
+        );
+      }
+
       // --------------
       // EVENT HANDLERS
       // --------------
       function handleTetrominoClick(event) {
         deselectTetrominos();
         selectTetromino(event.currentTarget);
+      }
+
+      function handleMatrixClick(event) {
+        updateCell(event.target.parentNode, selectionCellProperties());
       }
 
       // -----------
@@ -195,27 +307,36 @@
 
       function cellBackground(cellProperties) {
         let cellBackground = rect();
+        setClass(cellBackground, "cell-background");
         setWidthAndHeight(cellBackground, cellSideLength);
         setFill(cellBackground, cellProperties.background);
         return cellBackground;
       }
 
+      function cellShadow(cssClass, pathDAttribute, stroke) {
+        let cellShadow = path();
+        setClass(cellShadow, cssClass);
+        setFill(cellShadow, "none");
+        setD(cellShadow, pathDAttribute);
+        setStrokeWidth(cellShadow, cellShadowWidth);
+        setStroke(cellShadow, stroke);
+        return cellShadow;
+      }
+
       function cellLightShadow(cellProperties) {
-        let cellLightShadow = path();
-        setFill(cellLightShadow, "none");
-        setD(cellLightShadow, cellLightShadowPathDAttribute);
-        setStrokeWidth(cellLightShadow, cellShadowWidth);
-        setStroke(cellLightShadow, cellProperties.light);
-        return cellLightShadow;
+        return cellShadow(
+          "cell-light-shadow",
+          cellLightShadowPathDAttribute,
+          cellProperties.light
+        );
       }
 
       function cellDarkShadow(cellProperties) {
-        let cellDarkShadow = path();
-        setFill(cellDarkShadow, "none");
-        setD(cellDarkShadow, cellDarkShadowPathDAttribute);
-        setStrokeWidth(cellDarkShadow, cellShadowWidth);
-        setStroke(cellDarkShadow, cellProperties.dark);
-        return cellDarkShadow;
+        return cellShadow(
+          "cell-dark-shadow",
+          cellDarkShadowPathDAttribute,
+          cellProperties.dark
+        );
       }
 
       function cell(cellProperties) {
@@ -250,8 +371,13 @@
       // RENDER TETROMINOS
       // -----------------
       function tetromino(tetrominoProperty) {
-        let tetromino = matrix(tetrominoProperty);
+        let tetromino = matrix(tetrominoProperty.matrix);
         setClass(tetromino, "tetromino tetromino-deselected");
+        setData(
+          tetromino,
+          "selectionCellProperties",
+          tetrominoProperty.selectionCellProperties
+        );
         tetromino.addEventListener("click", handleTetrominoClick);
         return tetromino;
       }
@@ -276,81 +402,26 @@
       // ----------
       // RENDER DOM
       // ----------
-      document.getElementById("matrix").appendChild(
-        matrix([
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [_, _, _, _, _, _, _, _, _, _],
-          [L, L, L, T, Z, Z, L, L, I, _],
-          [L, O, O, T, T, Z, Z, L, I, _],
-          [J, O, O, T, S, S, T, L, I, _],
-          [J, J, J, S, S, T, T, T, I, _],
-        ])
+      let matrixElement = document.getElementById("matrix");
+      matrixElement.appendChild(
+        matrix(
+          Array.from({ length: 20 }, () => Array.from({ length: 10 }, () => _))
+        )
       );
+      matrixElement.addEventListener("click", handleMatrixClick);
 
-      document.getElementById("tetrominos").appendChild(
-        tetrominoRows([
-          [
-            [
-              [I, I, I, I],
-              [_, _, _, _],
-            ],
-          ],
-          [
-            [
-              [_, O, O, _],
-              [_, O, O, _],
-            ],
-            [
-              [_, T, T, T],
-              [_, _, T, _],
-            ],
-          ],
-          [
-            [
-              [_, _, S, S],
-              [_, S, S, _],
-            ],
-            [
-              [Z, Z, _, _],
-              [_, Z, Z, _],
-            ],
-          ],
-          [
-            [
-              [J, J, J, _],
-              [_, _, J, _],
-            ],
-            [
-              [_, L, L, L],
-              [_, L, _, _],
-            ],
-          ],
-          [
-            [
-              [_, _, _, _],
-              [_, _, _, _],
-            ],
-            [
-              [X, X, X, X],
-              [X, X, X, X],
-            ],
-          ],
-        ])
-      );
+      document
+        .getElementById("tetrominos")
+        .appendChild(
+          tetrominoRows([
+            [ITetromino],
+            [OTetromino, TTetromino],
+            [STetromino, ZTetromino],
+            [JTetromino, LTetromino],
+            [_Tetromino, XTetromino],
+          ])
+        );
+      selectTetromino(getFirstElementByClassName("tetromino"));
     </script>
   </body>
 </html>

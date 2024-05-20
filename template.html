@@ -6,9 +6,11 @@
         display: flex;
       }
 
-      .matrix {
-        width: fit-content;
+      .matrix-container {
         margin: auto;
+      }
+
+      .matrix {
         border: 4px solid #cccccc;
       }
 
@@ -16,11 +18,11 @@
         display: flex;
       }
 
-      .tetrominos {
+      .tetrominos-container {
         margin: auto;
       }
 
-      .tetromino-row {
+      .tetrominos-row {
         display: flex;
         justify-content: space-evenly;
       }
@@ -35,8 +37,8 @@
     </style>
   </head>
   <body>
-    <div id="matrix" class="matrix"></div>
-    <div id="tetrominos" class="tetrominos"></div>
+    <div id="matrixContainer" class="matrix-container"></div>
+    <div id="tetrominosContainer" class="tetrominos-container"></div>
     <script>
       // --------
       // SETTINGS
@@ -97,9 +99,9 @@
       // ----------
       // TETROMINOS
       // ----------
-      function tetrominoProperties(matrix, selectionCellProperties) {
+      function tetrominoProperties(matrixProperties, selectionCellProperties) {
         return {
-          matrix: matrix,
+          matrixProperties: matrixProperties,
           selectionCellProperties: selectionCellProperties,
         };
       }
@@ -197,6 +199,9 @@
         element.setAttribute(qualifiedName, value);
       }
 
+      function setId(element, id) {
+        setAttribute(element, "id", id);
+      }
       function setClass(element, cssClass) {
         setAttribute(element, "class", cssClass);
       }
@@ -284,6 +289,14 @@
         );
       }
 
+      function updateCellOfEventTarget(event) {
+        let cell = event.target.parentNode;
+        if (!cell.classList.contains("cell")) {
+          return;
+        }
+        updateCell(cell, selectionCellProperties());
+      }
+
       // --------------
       // EVENT HANDLERS
       // --------------
@@ -292,8 +305,24 @@
         selectTetromino(event.currentTarget);
       }
 
-      function handleMatrixClick(event) {
-        updateCell(event.target.parentNode, selectionCellProperties());
+      function handleMatrixMouseDown(event) {
+        updateCellOfEventTarget(event);
+      }
+
+      function handleMatrixMouseMove(event) {
+        updateCellOfEventTarget(event);
+      }
+
+      function handleDocumentMouseDown() {
+        document
+          .getElementById("matrix")
+          .addEventListener("mousemove", handleMatrixMouseMove);
+      }
+
+      function handleDocumentMouseUp() {
+        document
+          .getElementById("matrix")
+          .removeEventListener("mousemove", handleMatrixMouseMove);
       }
 
       // -----------
@@ -341,6 +370,7 @@
 
       function cell(cellProperties) {
         let cell = cellContainer();
+        setClass(cell, "cell");
         cell.appendChild(cellBackground(cellProperties));
         cell.appendChild(cellLightShadow(cellProperties));
         cell.appendChild(cellDarkShadow(cellProperties));
@@ -367,11 +397,21 @@
         return matrix;
       }
 
+      function matrixElement(matrixProperties) {
+        let matrixElement = matrix(
+          Array.from({ length: 20 }, () => Array.from({ length: 10 }, () => _))
+        );
+        setId(matrixElement, "matrix");
+        setClass(matrixElement, "matrix");
+        matrixElement.addEventListener("mousedown", handleMatrixMouseDown);
+        return matrixElement;
+      }
+
       // -----------------
       // RENDER TETROMINOS
       // -----------------
       function tetromino(tetrominoProperty) {
-        let tetromino = matrix(tetrominoProperty.matrix);
+        let tetromino = matrix(tetrominoProperty.matrixProperties);
         setClass(tetromino, "tetromino tetromino-deselected");
         setData(
           tetromino,
@@ -384,7 +424,7 @@
 
       function tetrominoRow(tetrominoRowProperties) {
         let tetrominoRow = div();
-        setClass(tetrominoRow, "tetromino-row");
+        setClass(tetrominoRow, "tetrominos-row");
         tetrominoRowProperties.forEach((tetrominoProperty) => {
           tetrominoRow.appendChild(tetromino(tetrominoProperty));
         });
@@ -399,28 +439,25 @@
         return tetrominoRows;
       }
 
+      function tetrominos() {
+        return tetrominoRows([
+          [ITetromino],
+          [OTetromino, TTetromino],
+          [STetromino, ZTetromino],
+          [JTetromino, LTetromino],
+          [_Tetromino, XTetromino],
+        ]);
+      }
+
       // ----------
       // RENDER DOM
       // ----------
-      let matrixElement = document.getElementById("matrix");
-      matrixElement.appendChild(
-        matrix(
-          Array.from({ length: 20 }, () => Array.from({ length: 10 }, () => _))
-        )
-      );
-      matrixElement.addEventListener("click", handleMatrixClick);
+      document.addEventListener("mousedown", handleDocumentMouseDown);
+      document.addEventListener("mouseup", handleDocumentMouseUp);
 
-      document
-        .getElementById("tetrominos")
-        .appendChild(
-          tetrominoRows([
-            [ITetromino],
-            [OTetromino, TTetromino],
-            [STetromino, ZTetromino],
-            [JTetromino, LTetromino],
-            [_Tetromino, XTetromino],
-          ])
-        );
+      document.getElementById("matrixContainer").appendChild(matrixElement());
+      document.getElementById("tetrominosContainer").appendChild(tetrominos());
+
       selectTetromino(getFirstElementByClassName("tetromino"));
     </script>
   </body>

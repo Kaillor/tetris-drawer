@@ -96,7 +96,7 @@
     <div id="tetrominosContainer" class="tetrominos-container"></div>
     <div id="matrixContainer" class="matrix-container"></div>
     <div class="buttons-container">
-      <button class="button button-clear">
+      <button class="button button-clear" onclick="handleButtonClearOnClick()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
           <path
             d="M424 64h-88V48c0-26.51-21.49-48-48-48h-64c-26.51 0-48 21.49-48
@@ -384,6 +384,18 @@
         updateCell(cell, selectionCellProperties());
       }
 
+      function clearMatrix() {
+        document.getElementById("matrix").childNodes.forEach((row) => {
+          clearRow(row);
+        });
+      }
+
+      function clearRow(row) {
+        row.childNodes.forEach((cell) => {
+          updateCell(cell, _);
+        });
+      }
+
       // --------------
       // EVENT HANDLERS
       // --------------
@@ -410,6 +422,10 @@
         document
           .getElementById("matrix")
           .removeEventListener("mousemove", handleMatrixMouseMove);
+      }
+
+      function handleButtonClearOnClick() {
+        clearMatrix();
       }
 
       // -----------

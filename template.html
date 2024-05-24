@@ -91,6 +91,7 @@
         opacity: 50%;
       }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   </head>
   <body>
     <div id="tetrominosContainer" class="tetrominos-container"></div>
@@ -113,7 +114,7 @@
           />
         </svg>
       </button>
-      <button class="button button-save">
+      <button class="button button-save" onclick="handleButtonSaveOnClick()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
           <path
             d="m30.71 7.29-6-6A1 1 0 0 0 24 1h-2v8a2 2 0 0 1-2 2h-8a2 2 0 0
@@ -130,16 +131,16 @@
       // --------
       // SETTINGS
       // --------
-      let svgNS = "http://www.w3.org/2000/svg";
+      const svgNS = "http://www.w3.org/2000/svg";
 
-      let cellSideLength = "48";
-      let cellShadowWidth = "4";
+      const cellSideLength = "48";
+      const cellShadowWidth = "4";
 
-      let cellShadowWidthHalf = cellShadowWidth / 2;
-      let cellSideLenghtWithoutShadow = cellSideLength - cellShadowWidth;
-      let cellSideLenghtWithoutHalfOfShadow =
+      const cellShadowWidthHalf = cellShadowWidth / 2;
+      const cellSideLenghtWithoutShadow = cellSideLength - cellShadowWidth;
+      const cellSideLenghtWithoutHalfOfShadow =
         cellSideLength - cellShadowWidthHalf;
-      let cellLightShadowPathDAttribute = [
+      const cellLightShadowPathDAttribute = [
         "M",
         cellSideLenghtWithoutShadow,
         cellShadowWidthHalf,
@@ -150,7 +151,7 @@
         cellShadowWidthHalf,
         cellSideLenghtWithoutShadow,
       ].join(" ");
-      let cellDarkShadowPathDAttribute = [
+      const cellDarkShadowPathDAttribute = [
         "M",
         cellSideLenghtWithoutHalfOfShadow,
         cellShadowWidth,
@@ -173,15 +174,15 @@
         };
       }
 
-      let _ = cellProperties("#ffffff", "#ffffff", "#eeeeee");
-      let X = cellProperties("#c8c8c8", "#dcdcdc", "#b4b4b4");
-      let I = cellProperties("#31c7ef", "#48e0ff", "#20b0e0");
-      let O = cellProperties("#f7d308", "#ffec1c", "#e8c000");
-      let T = cellProperties("#ad4d9c", "#c658b4", "#983888");
-      let S = cellProperties("#42b642", "#48d048", "#30a030");
-      let Z = cellProperties("#ef2029", "#ff4848", "#d01818");
-      let J = cellProperties("#5a65ad", "#6680cc", "#4857a0");
-      let L = cellProperties("#ef7921", "#ff9030", "#e06810");
+      const _ = cellProperties("#ffffff", "#ffffff", "#eeeeee");
+      const X = cellProperties("#c8c8c8", "#dcdcdc", "#b4b4b4");
+      const I = cellProperties("#31c7ef", "#48e0ff", "#20b0e0");
+      const O = cellProperties("#f7d308", "#ffec1c", "#e8c000");
+      const T = cellProperties("#ad4d9c", "#c658b4", "#983888");
+      const S = cellProperties("#42b642", "#48d048", "#30a030");
+      const Z = cellProperties("#ef2029", "#ff4848", "#d01818");
+      const J = cellProperties("#5a65ad", "#6680cc", "#4857a0");
+      const L = cellProperties("#ef7921", "#ff9030", "#e06810");
 
       // ----------
       // TETROMINOS
@@ -193,63 +194,63 @@
         };
       }
 
-      let _Tetromino = tetrominoProperties(
+      const _Tetromino = tetrominoProperties(
         [
           [_, _, _, _],
           [_, _, _, _],
         ],
         _
       );
-      let XTetromino = tetrominoProperties(
+      const XTetromino = tetrominoProperties(
         [
           [X, X, X, X],
           [X, X, X, X],
         ],
         X
       );
-      let ITetromino = tetrominoProperties(
+      const ITetromino = tetrominoProperties(
         [
           [I, I, I, I],
           [_, _, _, _],
         ],
         I
       );
-      let OTetromino = tetrominoProperties(
+      const OTetromino = tetrominoProperties(
         [
           [_, O, O, _],
           [_, O, O, _],
         ],
         O
       );
-      let TTetromino = tetrominoProperties(
+      const TTetromino = tetrominoProperties(
         [
           [_, T, T, T],
           [_, _, T, _],
         ],
         T
       );
-      let STetromino = tetrominoProperties(
+      const STetromino = tetrominoProperties(
         [
           [_, _, S, S],
           [_, S, S, _],
         ],
         S
       );
-      let ZTetromino = tetrominoProperties(
+      const ZTetromino = tetrominoProperties(
         [
           [Z, Z, _, _],
           [_, Z, Z, _],
         ],
         Z
       );
-      let JTetromino = tetrominoProperties(
+      const JTetromino = tetrominoProperties(
         [
           [J, J, J, _],
           [_, _, J, _],
         ],
         J
       );
-      let LTetromino = tetrominoProperties(
+      const LTetromino = tetrominoProperties(
         [
           [_, L, L, L],
           [_, L, _, _],
@@ -266,6 +267,9 @@
 
       function div() {
         return htmlElement("div");
+      }
+      function a() {
+        return htmlElement("a");
       }
 
       function svgElement(qualifiedName) {
@@ -396,6 +400,16 @@
         });
       }
 
+      function saveMatrix() {
+        let matrix = document.getElementById("matrix");
+        html2canvas(matrix).then((matrix) => {
+          const link = a();
+          link.href = matrix.toDataURL("image/png");
+          link.download = "matrix.png";
+          link.click();
+        });
+      }
+
       // --------------
       // EVENT HANDLERS
       // --------------
@@ -426,6 +440,10 @@
 
       function handleButtonClearOnClick() {
         clearMatrix();
+      }
+
+      function handleButtonSaveOnClick() {
+        saveMatrix();
       }
 
       // -----------

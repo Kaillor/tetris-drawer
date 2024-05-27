@@ -341,6 +341,33 @@
         return getFirstElementByClassNameOfElement(document, className);
       }
 
+      // -------------
+      // LOCAL STORAGE
+      // -------------
+
+      function saveMatrixproperties(matrixProperties) {
+        localStorage.setItem("matrix", JSON.stringify(matrixProperties));
+      }
+
+      function loadMatrixproperties() {
+        let matrixProperties = JSON.parse(localStorage.getItem("matrix"));
+        if (matrixProperties) {
+          return matrixProperties;
+        }
+
+        matrixProperties = Array.from({ length: 20 }, () =>
+          Array.from({ length: 10 }, () => _)
+        );
+        saveMatrixproperties(matrixProperties);
+        return matrixProperties;
+      }
+
+      function updateCellProperties(cellCoordinates, cellProperties) {
+        let matrixProperties = loadMatrixproperties();
+        matrixProperties[cellCoordinates.y][cellCoordinates.x] = cellProperties;
+        saveMatrixproperties(matrixProperties);
+      }
+
       // --------------------
       // EVENT HANDLERS UTILS
       // --------------------
@@ -365,7 +392,15 @@
         );
       }
 
+      function cellCoordinates(cell) {
+        return {
+          x: getData(cell, "x"),
+          y: getData(cell, "y"),
+        };
+      }
+
       function updateCell(cell, cellProperties) {
+        updateCellProperties(cellCoordinates(cell), cellProperties);
         setFill(
           getFirstElementByClassNameOfElement(cell, "cell-background"),
           cellProperties.background
@@ -400,7 +435,7 @@
         });
       }
 
-      function saveMatrix() {
+      function downloadMatrix() {
         let matrix = document.getElementById("matrix");
         html2canvas(matrix).then((matrix) => {
           const link = a();
@@ -443,7 +478,7 @@
       }
 
       function handleButtonSaveOnClick() {
-        saveMatrix();
+        downloadMatrix();
       }
 
       // -----------
@@ -489,9 +524,11 @@
         );
       }
 
-      function cell(cellProperties) {
+      function cell(cellProperties, x, y) {
         let cell = cellContainer();
         setClass(cell, "cell");
+        setData(cell, "x", x);
+        setData(cell, "y", y);
         cell.appendChild(cellBackground(cellProperties));
         cell.appendChild(cellLightShadow(cellProperties));
         cell.appendChild(cellDarkShadow(cellProperties));
@@ -501,27 +538,25 @@
       // -------------
       // RENDER MATRIX
       // -------------
-      function row(rowProperties) {
+      function row(rowProperties, y) {
         let row = div();
         setClass(row, "row");
-        rowProperties.forEach((cellProperties) => {
-          row.appendChild(cell(cellProperties));
-        });
+        for (let x = 0; x < rowProperties.length; x++) {
+          row.appendChild(cell(rowProperties[x], x, y));
+        }
         return row;
       }
 
       function matrix(matrixProperties) {
         let matrix = div();
-        matrixProperties.forEach((rowProperties) => {
-          matrix.appendChild(row(rowProperties));
-        });
+        for (let y = 0; y < matrixProperties.length; y++) {
+          matrix.appendChild(row(matrixProperties[y], y));
+        }
         return matrix;
       }
 
-      function matrixElement(matrixProperties) {
-        let matrixElement = matrix(
-          Array.from({ length: 20 }, () => Array.from({ length: 10 }, () => _))
-        );
+      function matrixElement() {
+        let matrixElement = matrix(loadMatrixproperties());
         setId(matrixElement, "matrix");
         setClass(matrixElement, "matrix");
         matrixElement.addEventListener("mousedown", handleMatrixMouseDown);
